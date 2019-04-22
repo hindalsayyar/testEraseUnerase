@@ -8,9 +8,10 @@
 
 import UIKit
 
-class ViewController: UIViewController, UIGestureRecognizerDelegate{
+class ViewController: UIViewController, UIGestureRecognizerDelegate, UIScrollViewDelegate{
     
     var container : UIView!
+    var topScrollerView:UIScrollView!
     var backgrounsImage : UIImageView!
     var TopImageView : UIImageView!
     var isErasing:Bool = true
@@ -25,7 +26,7 @@ class ViewController: UIViewController, UIGestureRecognizerDelegate{
     var beginX:CGFloat!
     var beginY:CGFloat!
     
-    var lastRotation:CGFloat!//CGPoint!
+    var lastRotation : CGFloat = 0.0
     var rotationTransform:CGFloat! = 0.0
     
     
@@ -51,25 +52,38 @@ class ViewController: UIViewController, UIGestureRecognizerDelegate{
         backgrounsImage.image = UIImage(named: "4k")
         container.addSubview(backgrounsImage)
         
-        topUIView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: view.frame.height))
-        topUIView.backgroundColor = UIColor.blue.withAlphaComponent(0.4)
-        container.addSubview(topUIView)
+//        topUIView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: view.frame.height))
+//        topUIView.backgroundColor = UIColor.blue.withAlphaComponent(0.4)
+//        //container.addSubview(topUIView)
+//        view.addSubview(topUIView)
+        
+        
+        topScrollerView = UIScrollView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: view.frame.height))
+        topScrollerView.backgroundColor = UIColor.blue.withAlphaComponent(0.4)
+        //container.addSubview(topUIView)
+        topScrollerView.delegate = self
+        view.addSubview(topScrollerView)
+        
+        topScrollerView.minimumZoomScale = 1.0
+        topScrollerView.maximumZoomScale = 500.0
+        
+        topScrollerView.contentSize = .init(width: 300, height: 300)
         
         TopImageView = UIImageView(frame: CGRect(x:0 , y: 0, width: 300, height: 300))
         TopImageView.image = UIImage(named: "rose")
         TopImageView.backgroundColor = UIColor.red.withAlphaComponent(0.4)
-        topUIView.addSubview(TopImageView)
+        topScrollerView.addSubview(TopImageView)
         //container.addSubview(TopImageView)
         
         
         topImage = UIImage(named: "rose")
         
         
-//        let button = UIButton(frame: CGRect(x: 100, y: 500, width: 100, height: 100))
-//        button.backgroundColor = UIColor.white
-//        button.addTarget(self, action: #selector(ViewController.EraseOrUnerase(sender:)), for: .touchUpInside)
-//        button.setTitle("Erase/Unerase", for: .normal)
-//        self.container.addSubview(button)
+        let button = UIButton(frame: CGRect(x: 100, y: 500, width: 100, height: 100))
+        button.backgroundColor = UIColor.white
+        button.addTarget(self, action: #selector(ViewController.EraseOrUnerase(sender:)), for: .touchUpInside)
+        button.setTitle("Erase/Unerase", for: .normal)
+        self.container.addSubview(button)
         
         TopImageView.isUserInteractionEnabled = true
         container.isUserInteractionEnabled = true
@@ -77,19 +91,20 @@ class ViewController: UIViewController, UIGestureRecognizerDelegate{
         //initilize the gesture and the targer
         pinchGesture = UIPinchGestureRecognizer.init(target: self, action: #selector(ViewController.scale(sender:)))
         pinchGesture.delegate = self
-        self.TopImageView.addGestureRecognizer(pinchGesture)
+        //self.TopImageView.addGestureRecognizer(pinchGesture)
         
         //set the pan gesture to move
         panGesture = UIPanGestureRecognizer.init(target: self, action: #selector(ViewController.pan(sender:)))
         panGesture?.delegate = self
         panGesture?.minimumNumberOfTouches = 1
         panGesture?.maximumNumberOfTouches = 2
-        self.TopImageView.addGestureRecognizer(panGesture!)
+        //self.TopImageView.addGestureRecognizer(panGesture!)
+        self.topScrollerView.addGestureRecognizer(panGesture!)
         
         //set the rotate gesture to rotate
         rotationGesture = UIRotationGestureRecognizer.init(target: self, action: #selector(ViewController.rotate(sender:)))
         rotationGesture?.delegate = self
-        self.TopImageView.addGestureRecognizer(rotationGesture)
+        self.topScrollerView.addGestureRecognizer(rotationGesture)
     }
     
     
@@ -102,21 +117,92 @@ class ViewController: UIViewController, UIGestureRecognizerDelegate{
     }
     
     
+    func viewForZooming(in scrollView: UIScrollView) -> UIView? {
+        return self.TopImageView
+    }
+    
+    
+    
+    
+    
+    
+    
+    
    // TODO: touchesBegan
         override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
             print("touch began now ")
+//            let touchCount = event?.touches(for: self.topScrollerView)?.count
+//            let imageViewCount = event?.touches(for: self.TopImageView)?.count
+//            print("There is 2 fingers: in begin\(touchCount)")
+//            print("There is 2 fingers: in begin\(imageViewCount)")
+//
+//            if isPinching == false {
+//                print("not pinching now ,,,,, check your code")
+//                if touches.count < 2 {
+//                    if let touch = touches.first as UITouch?{
+//                        let touchPoint = touch.location(in: self.TopImageView)//self.foregroundImage
+//                       // if startCrooping == true { TopImageView
+//                            previusPoint = touchPoint
+//                            print("touch begin to : \(touchPoint)")
+//                      //  }
+//                    }
+//                }
+//
+//            }
         }
     
     
    // TODO: touchesMoved
         override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
             print("touch is moving now ")
+//            if isPinching == false {
+//           // swiped = true
+//            let touchCount = event?.touches(for: self.topScrollerView)?.count
+//            print("There is 2 fingers: in moves\(String(describing: touchCount))")
+//            if let touch = touches.first as UITouch?{
+//
+//                let touchPoint = touch.location(in: self.TopImageView)//foregroundImage //self.view
+//                currentPoint = touchPoint
+//              //  if startCrooping == true {
+//                   // let points = [lastTouch,currentTouch]
+//                    // touchPointArray.append(points as! [CGPoint])
+//                    // print("How many touches we have :::\(touchPointArray.count)")
+//                    // print("check the result of the array \(touchPointArray)")
+//                    print("touch moved to : \(touchPoint)")
+//                   // if touchCount != nil && touchCount! == 1{
+//                        self.path.move(to: touchPoint)
+//                        self.path.addLine(to: touchPoint)
+//                        self.addNewPathToImage()
+//                  //  }
+//               // }
+//
+//                previusPoint = currentPoint
+//                }
+//            }
         }
     
     
     
    // TODO: touchesEnded
         override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+            //if startCrooping == true {
+//            if isPinching == false {
+//            let touchCount = event?.touches(for: self.topScrollerView)?.count
+//            print("There is 2 fingers: in ends\(touchCount)")
+//            if touches.count < 2{
+//                if let touch = touches.first as UITouch?{
+//                    let touchPoint = touch.location(in:self.TopImageView ) //self.foregroundImage
+//                    print("touch ended at : \(touchPoint)")
+//                  //  if startCrooping == true {
+//                       // if touchCount != nil && touchCount! == 1{
+//                            path.addLine(to: touchPoint)
+//                            addNewPathToImage()
+//                      //  }
+//                        path.close()
+//                        path.removeAllPoints()
+//                    }
+//                }
+//            }
     
         }
     
@@ -191,6 +277,8 @@ class ViewController: UIViewController, UIGestureRecognizerDelegate{
         //touchPointArray.removeAll()
          let sender = sender as? UIPinchGestureRecognizer
         print("pinching now started")
+        
+        
 //        if let view = sender!.view {
 //
 //            view.transform = view.transform.scaledBy(x: sender!.scale, y: sender!.scale)
