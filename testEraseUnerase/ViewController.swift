@@ -52,10 +52,7 @@ class ViewController: UIViewController, UIGestureRecognizerDelegate, UIScrollVie
         backgrounsImage.image = UIImage(named: "4k")
         container.addSubview(backgrounsImage)
         
-//        topUIView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: view.frame.height))
-//        topUIView.backgroundColor = UIColor.blue.withAlphaComponent(0.4)
-//        //container.addSubview(topUIView)
-//        view.addSubview(topUIView)
+        
         
         
         topScrollerView = UIScrollView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: view.frame.height))
@@ -64,19 +61,32 @@ class ViewController: UIViewController, UIGestureRecognizerDelegate, UIScrollVie
         topScrollerView.delegate = self
         view.addSubview(topScrollerView)
         
-        topScrollerView.minimumZoomScale = 1.0
+        topScrollerView.minimumZoomScale = 0.1
         topScrollerView.maximumZoomScale = 500.0
+        topScrollerView.isScrollEnabled = false
+        //topScrollerView.bouncesZoom = true
+        topScrollerView.autoresizingMask = [UIView.AutoresizingMask.flexibleWidth, UIView.AutoresizingMask.flexibleHeight]
         
-        topScrollerView.contentSize = .init(width: 300, height: 300)
+        
+        
+        topUIView = UIView(frame: CGRect(x: 0, y: 0, width: 300, height: 300)) //width: view.frame.width, height: view.frame.height)
+        //topUIView.clipsToBounds = true
+        //topUIView.backgroundColor = UIColor.blue.withAlphaComponent(0.4)
+        //container.addSubview(topUIView)
+        topScrollerView.addSubview(topUIView)
+       
         
         TopImageView = UIImageView(frame: CGRect(x:0 , y: 0, width: 300, height: 300))
         TopImageView.image = UIImage(named: "rose")
         TopImageView.backgroundColor = UIColor.red.withAlphaComponent(0.4)
-        topScrollerView.addSubview(TopImageView)
+        topUIView.addSubview(TopImageView)
         //container.addSubview(TopImageView)
         
         
         topImage = UIImage(named: "rose")
+        
+        
+         topScrollerView.contentSize = topImage.size //.init(width: 2000, height: 2000)
         
         
         let button = UIButton(frame: CGRect(x: 100, y: 500, width: 100, height: 100))
@@ -92,6 +102,7 @@ class ViewController: UIViewController, UIGestureRecognizerDelegate, UIScrollVie
         pinchGesture = UIPinchGestureRecognizer.init(target: self, action: #selector(ViewController.scale(sender:)))
         pinchGesture.delegate = self
         //self.TopImageView.addGestureRecognizer(pinchGesture)
+        //self.topScrollerView.addGestureRecognizer(pinchGesture)
         
         //set the pan gesture to move
         panGesture = UIPanGestureRecognizer.init(target: self, action: #selector(ViewController.pan(sender:)))
@@ -104,7 +115,7 @@ class ViewController: UIViewController, UIGestureRecognizerDelegate, UIScrollVie
         //set the rotate gesture to rotate
         rotationGesture = UIRotationGestureRecognizer.init(target: self, action: #selector(ViewController.rotate(sender:)))
         rotationGesture?.delegate = self
-        self.topScrollerView.addGestureRecognizer(rotationGesture)
+        self.TopImageView.addGestureRecognizer(rotationGesture)
     }
     
     
@@ -118,8 +129,33 @@ class ViewController: UIViewController, UIGestureRecognizerDelegate, UIScrollVie
     
     
     func viewForZooming(in scrollView: UIScrollView) -> UIView? {
-        return self.TopImageView
+        return self.TopImageView//TopImageView
+            //self.topUIView
     }
+    
+    func scrollViewDidZoom(_ scrollView: UIScrollView) {
+        print("scroll View Did Zoom")
+        
+        let testViewSize = TopImageView.bounds.size  //self.topUIView
+        let scrollViewSize = topScrollerView.bounds.size
+        
+        let verticalPadding = testViewSize.height < scrollViewSize.height ? (scrollViewSize.height - testViewSize.height) / 2 : 0
+        let horizontalPadding = testViewSize.width < scrollViewSize.width ? (scrollViewSize.width - testViewSize.width) / 2 : 0
+        
+        topScrollerView.contentInset = UIEdgeInsets(top: verticalPadding, left: horizontalPadding, bottom: verticalPadding, right: horizontalPadding)
+    }
+    
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
+    }
+    
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return gestureRecognizer == pinchGesture && otherGestureRecognizer == topScrollerView.pinchGestureRecognizer
+        
+
+    }
+    
+    
     
     
     
@@ -185,7 +221,7 @@ class ViewController: UIViewController, UIGestureRecognizerDelegate, UIScrollVie
     
    // TODO: touchesEnded
         override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-            //if startCrooping == true {
+//            //if startCrooping == true {
 //            if isPinching == false {
 //            let touchCount = event?.touches(for: self.topScrollerView)?.count
 //            print("There is 2 fingers: in ends\(touchCount)")
@@ -207,37 +243,20 @@ class ViewController: UIViewController, UIGestureRecognizerDelegate, UIScrollVie
         }
     
     
+    
     //MARK: Set the Pan Function to move
     @objc func pan(sender : Any){
-        //touchPointArray.removeAll()
-        //if startCrooping == true  || isBackgroundMood == true { // &&
-         //   isZooming = false
             if let sender = sender as? UIPanGestureRecognizer {
-                //the main view
-                // ContainerForBackgroundAndForegroundImage.isUserInteractionEnabled = true
 
                 var newCenter = sender.translation(in: self.view)
                 if(sender.state == .began){
                     print("now we are using pan")
-                    beginX = TopImageView.center.x //topUIView
-                    beginY = TopImageView.center.y //topUIView
+                    beginX = topUIView.center.x //topUIView //TopImageView
+                    beginY = topUIView.center.y //topUIView //TopImageView
                 }
                 newCenter = CGPoint.init(x: beginX + newCenter.x, y: beginY + newCenter.y)
-                TopImageView.center = newCenter
-                //sender.setTranslation(CGPoint.zero, in: self.view)
+                topUIView.center = newCenter
 
-
-                //move the transfer view or the crop view
-//                let getCropViewFramInViewCoordinate = cropView.convert(cropView.bounds, to: self.view)
-//                let _ = calculateMaskLayer(maskLayer, cropRect: getCropViewFramInViewCoordinate)
-                
-//                let state: UIGestureRecognizer.State? = sender.state
-//
-//                if state == .began || state == .changed {
-//                    let translation: CGPoint? = sender.translation(in: sender.view)
-//                    sender.view?.transform = (sender.view?.transform.translatedBy(x: (translation?.x)!, y: (translation?.y)!))!
-//                    sender.setTranslation(CGPoint.zero, in: sender.view)
-//                }
                 
             }
         
@@ -250,10 +269,7 @@ class ViewController: UIViewController, UIGestureRecognizerDelegate, UIScrollVie
     
     //MARK: Set the Rotate Function
     @objc func rotate(sender : Any){
-        //touchPointArray.removeAll()
-        //isZooming = true
-        //if isTopMood == true {
-            if let sender = sender as? UIRotationGestureRecognizer, let imageView = TopImageView { //TopImageUIImageView //self.EraseView //TopImageView
+            if let sender = sender as? UIRotationGestureRecognizer, let imageView = topUIView{ //TopImageUIImageView //self.EraseView //TopImageView //TopImageView
                 if sender.state == .ended{
                     rotationTransform = sender.rotation
                     lastRotation = 0.0
@@ -264,7 +280,6 @@ class ViewController: UIViewController, UIGestureRecognizerDelegate, UIScrollVie
                 let newTransform = currentTransform.rotated(by: rotation)
                 imageView.transform = newTransform
                 lastRotation = sender.rotation
-                //                rotationTransform = sender.rotation
                 
             }
        
@@ -277,15 +292,6 @@ class ViewController: UIViewController, UIGestureRecognizerDelegate, UIScrollVie
         //touchPointArray.removeAll()
          let sender = sender as? UIPinchGestureRecognizer
         print("pinching now started")
-        
-        
-//        if let view = sender!.view {
-//
-//            view.transform = view.transform.scaledBy(x: sender!.scale, y: sender!.scale)
-//            sender!.scale = 1
-//        }
-        //if startCrooping == true || isBackgroundMood == true{
-          //  let sender = sender as? UIPinchGestureRecognizer
             if sender!.state == .began {
                 //isPinching = true
                 print("pinching now started")
@@ -294,10 +300,7 @@ class ViewController: UIViewController, UIGestureRecognizerDelegate, UIScrollVie
                 var newScale = currentScale*sender!.scale
                 print("The new scale ::: \(newScale)")
                 if newScale > 1 {
-//                    self.isZooming = true
-//                    isPinching = true
                 }
-               // touchPointArray.removeAll()
             }
             else if sender?.state == .changed{
                 print("pinching now changing")
@@ -328,8 +331,6 @@ class ViewController: UIViewController, UIGestureRecognizerDelegate, UIScrollVie
                     print("pinching now larger than 1")
 
                     TopImageView.transform = transform//topUIView//ContainerForBackgroundAndForegroundImage
-                    //self.TopImageView.transform = transform
-                    //view.transform = transform
                     sender!.scale = 1.0
 
                 }
